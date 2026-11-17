@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
  # Runs for each update pushed to the PR branch.
+# Also generates Astro's route and environment declarations before TypeScript checks.
 permissions:
   contents: read
 
