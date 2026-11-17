@@ -22,6 +22,7 @@ import { toStyleObject } from '@/utils/feature'
 import { getCNFromRemote, loadMapleMono } from '@/utils/loadFont'
 
 import LigaSwitch from './components/liga-switch'
+import KotlinEditor from './kotlin-editor'
 import ConfigActionDialog from './dialog/config'
 import FreezeActionDialog from './dialog/freeze'
 import LoadCnDialog from './dialog/load-cn'
