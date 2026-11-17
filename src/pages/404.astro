@@ -1,14 +1,16 @@
 ---
-import { DEFAULT_LOCALE, isDEV } from '@/utils/constant'
+import { DEFAULT_LOCALE } from '@/utils/constant'
 
-const baseUrl = isDEV ? '/' : Astro.site
+const baseUrl = import.meta.env.PROD
+  ? `${Astro.site}${import.meta.env.BASE_URL}`
+  : '/'
 ---
 
 <html lang={DEFAULT_LOCALE}>
   <head>
     <meta charset="UTF-8" />
     <title>404 PAGE NOT FOUND</title>
-    <link rel="canonical" href={Astro.site} />
+    <link rel="canonical" href={baseUrl} />
 
     <noscript>
       <meta
