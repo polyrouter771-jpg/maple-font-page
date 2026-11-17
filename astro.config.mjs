@@ -12,8 +12,11 @@ import mapleTheme from './src/assets/maple-dark-color-theme.json'
 import { DEFAULT_LOCALE, LOCALES_SETTING } from './src/utils/constant'
 
 // https://astro.build/config
+const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+
 export default defineConfig({
-  site: 'https://font.subf.dev',
+  site: isGitHubPages ? 'https://polyrouter771-jpg.github.io' : 'https://font.subf.dev',
+  base: isGitHubPages ? '/maple-font-page' : '/',
   integrations: [
     unocss({ injectReset: true }),
     solidJs(),
