@@ -5,6 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
+ # Runs for each update pushed to the PR branch.
 permissions:
   contents: read
 
