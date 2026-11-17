@@ -94,12 +94,28 @@ export default function Playground(props: PlaygroundProps) {
     return weight()
   })
 
+  const loadKR = () => {
+    if (krLoadState() === STATE.LOADING || krLoadState() === STATE.SUCCESS) return
+    setKRLoadState(STATE.LOADING)
+    setKRLoadError('')
+    loadMapleMonoKR()
+      .then(() => setKRLoadState(STATE.SUCCESS))
+      .catch((error: unknown) => {
+        setKRLoadState(STATE.FAILED)
+        setKRLoadError(error instanceof Error ? error.message : 'Could not load Maple Mono KR.')
+      })
+  }
+
   onMount(() => {
     setMonoLoadState(STATE.LOADING)
-    setText('Loading...')
+    setText('Loading Maple Mono KR…')
     if (location.search.includes('normal')) {
       setNormal(true)
     }
+
+    // Always load the official Korean variable font for the preview.
+    loadKR()
+
     loadMapleMono()
       .then(() => {
         setMonoLoadState(STATE.SUCCESS)
@@ -114,18 +130,6 @@ export default function Playground(props: PlaygroundProps) {
 
   const handleChange = (feat: string, stat: FeatureValue): void => {
     setFeat(val => ({ ...val, ...{ [feat]: stat } }))
-  }
-
-  const loadKR = () => {
-    if (krLoadState() === STATE.LOADING || krLoadState() === STATE.SUCCESS) return
-    setKRLoadState(STATE.LOADING)
-    setKRLoadError('')
-    loadMapleMonoKR()
-      .then(() => setKRLoadState(STATE.SUCCESS))
-      .catch((error: unknown) => {
-        setKRLoadState(STATE.FAILED)
-        setKRLoadError(error instanceof Error ? error.message : 'Could not load Maple Mono KR.')
-      })
   }
 
   const loadCN = () => {
