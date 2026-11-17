@@ -2,7 +2,9 @@
 import { getLocalePaths, LOCALES } from '@/locales/i18n'
 import { DEFAULT_LOCALE, LOCALES_SETTING } from '@/utils/constant'
 
-const baseUrl = import.meta.env.PROD ? Astro.site : '/'
+const baseUrl = import.meta.env.PROD
+  ? `${Astro.site}${import.meta.env.BASE_URL}`
+  : '/'
 const defaultLocale = DEFAULT_LOCALE
 
 const meta = {
