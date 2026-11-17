@@ -69,6 +69,7 @@ export default function KotlinEditor() {
           <div class="w-12 shrink-0 select-none overflow-hidden bg-#171718 py-3 pr-3 text-right text-#64748b">
             <div class="kotlin-gutter">{Array.from({ length: lineCount() }, (_, index) => <div>{index + 1}</div>)}</div>
           </div>
+          {/* eslint-disable-next-line solid/no-innerhtml -- Tokens are HTML-escaped by highlightKotlin before rendering. */}
           <pre class="m-0 min-w-0 flex-1 overflow-hidden whitespace-pre p-3" aria-hidden="true" innerHTML={highlighted()} />
         </div>
         <textarea
@@ -84,8 +85,13 @@ export default function KotlinEditor() {
             const root = event.currentTarget.parentElement
             const pre = root?.querySelector('pre')
             const gutter = root?.querySelector('.kotlin-gutter')
-            if (pre) { pre.scrollTop = event.currentTarget.scrollTop; pre.scrollLeft = event.currentTarget.scrollLeft }
-            if (gutter) gutter.scrollTop = event.currentTarget.scrollTop
+            if (pre) {
+              pre.scrollTop = event.currentTarget.scrollTop
+              pre.scrollLeft = event.currentTarget.scrollLeft
+            }
+            if (gutter) {
+              gutter.scrollTop = event.currentTarget.scrollTop
+            }
           }}
           class="relative z-1 block min-h-72 w-full resize-y overflow-auto bg-transparent py-3 pl-15 pr-3 font-mono text-sm leading-6 text-transparent caret-#f5e7d6 outline-none selection:bg-#475569/70"
           style={{ 'white-space': 'pre', 'overflow-wrap': 'normal' }}

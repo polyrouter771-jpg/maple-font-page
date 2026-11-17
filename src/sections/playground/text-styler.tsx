@@ -15,9 +15,14 @@ export default function TextStyler(props: TextStylerProps) {
   let editor: HTMLDivElement | undefined
   const [active, setActive] = createSignal({ bold: false, italic: false })
 
+  function readEditorText() {
+    // eslint-disable-next-line unicorn/prefer-dom-node-text-content -- innerText preserves newlines from contenteditable block elements.
+    return editor?.innerText ?? ''
+  }
+
   createEffect(() => {
     const value = props.text
-    if (editor && editor.innerText !== value) {
+    if (editor && readEditorText() !== value) {
       editor.textContent = value
     }
   })
@@ -33,7 +38,7 @@ export default function TextStyler(props: TextStylerProps) {
     editor?.focus()
     document.execCommand(command)
     updateActive()
-    props.onTextChange(editor?.innerText ?? props.text)
+    props.onTextChange(readEditorText() || props.text)
   }
 
   return (
@@ -65,7 +70,7 @@ export default function TextStyler(props: TextStylerProps) {
           <button
             type="button"
             disabled={props.krLoaded || props.krLoading}
-            onClick={props.onLoadKR}
+            onClick={() => props.onLoadKR()}
             class="rounded border border-#64748b px-2.5 py-1.5 text-xs hover:bg-#334155 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {props.krLoaded ? 'Maple Mono KR loaded' : props.krLoading ? 'Loading KR…' : 'Load Maple Mono KR'}
@@ -81,7 +86,7 @@ export default function TextStyler(props: TextStylerProps) {
         spellcheck={false}
         class={`min-h-36 flex-1 overflow-auto whitespace-pre-wrap break-words p-3 font-liga text-base leading-relaxed outline-none focus:ring-1 focus:ring-inset focus:ring-#64748b ${props.class ?? ''}`}
         style={props.style}
-        onInput={() => props.onTextChange(editor?.innerText ?? '')}
+        onInput={() => props.onTextChange(readEditorText())}
         onKeyUp={updateActive}
         onMouseUp={updateActive}
         onBlur={updateActive}
