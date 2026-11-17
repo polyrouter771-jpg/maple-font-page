@@ -3,8 +3,8 @@
   "type": "module",
   "version": "7.9.5",
   "scripts": {
-    "dev": "bunx astro dev --open",
-    "build": "bunx astro build",
+    "dev": "bun run scripts/fetch-maple-kr.mjs && bunx astro dev --open",
+    "build": "bun run scripts/fetch-maple-kr.mjs && bunx astro build",
     "preview": "bunx astro preview --host",
     "astro": "bunx astro",
     "format": "tsc --noEmit && bunx eslint --fix --cache",
