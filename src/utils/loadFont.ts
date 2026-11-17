@@ -91,7 +91,7 @@ async function loadKRFromArchive(buffer: ArrayBuffer) {
     const localOffset = readU32(view, cursor + 42)
     const name = new TextDecoder().decode(archive.subarray(cursor + 46, cursor + 46 + nameLength))
 
-    if (/\.ttf$/i.test(name) && /KR/i.test(name) && /VF/i.test(name)) {
+    if (/\.ttf$/i.test(name) && /KR/i.test(name)) {
       const font = await extractZipEntry(archive, view, localOffset, compressedSize, method)
       if (/italic/i.test(name)) italic = font
       else if (!regular) regular = font
