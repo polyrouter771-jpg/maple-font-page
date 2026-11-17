@@ -368,7 +368,6 @@ export default function Playground(props: PlaygroundProps) {
             )}
           </For>
         </div>
-        <TextStyler />
         <KotlinEditor />
       </div>
       <Show when={props.isCn && monoLoadState() === STATE.SUCCESS}>
