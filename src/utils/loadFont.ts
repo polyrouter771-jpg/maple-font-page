@@ -1,5 +1,3 @@
-import { unzipSync } from 'fflate'
-
 import { fontPrefix } from './constant'
 
 function getMapleMonoFontFace(italic: boolean) {
@@ -37,61 +35,94 @@ export async function loadMapleMono() {
 const MAPLE_KR_ARCHIVE = 'https://github.com/subframe7536/maple-font/releases/download/v8.0-beta.3/MapleMono-NF-KR-VF.zip'
 let mapleKRLoad: Promise<void> | undefined
 
-function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer
+function readU16(view: DataView, offset: number) {
+  return view.getUint16(offset, true)
 }
 
-/**
- * Load the official Maple Mono NF-KR variable package on demand.
- * The KR build is distributed as an archive by the upstream project, so
- * extract its variable TTF files in-browser and register them as FontFace objects.
- */
-export function loadMapleMonoKR(): Promise<void> {
-  if (mapleKRLoad) {
-    return mapleKRLoad
+function readU32(view: DataView, offset: number) {
+  return view.getUint32(offset, true)
+}
+
+async function extractZipEntry(
+  archive: Uint8Array,
+  view: DataView,
+  localOffset: number,
+  compressedSize: number,
+  method: number,
+): Promise<ArrayBuffer> {
+  const nameLength = readU16(view, localOffset + 26)
+  const extraLength = readU16(view, localOffset + 28)
+  const start = localOffset + 30 + nameLength + extraLength
+  const compressed = archive.subarray(start, start + compressedSize)
+
+  if (method === 0) return compressed.slice().buffer
+  if (method !== 8) throw new Error(`Unsupported Maple Mono KR ZIP compression method: ${method}`)
+
+  const stream = new Blob([compressed]).stream().pipeThrough(
+    new DecompressionStream('deflate-raw'),
+  )
+  return new Response(stream).arrayBuffer()
+}
+
+async function loadKRFromArchive(buffer: ArrayBuffer) {
+  const archive = new Uint8Array(buffer)
+  const view = new DataView(buffer)
+  let endOffset = -1
+
+  for (let offset = Math.max(0, archive.length - 65_557); offset <= archive.length - 22; offset++) {
+    if (readU32(view, offset) === 0x06054B50) endOffset = offset
   }
+  if (endOffset < 0) throw new Error('The Maple Mono KR archive is invalid (ZIP directory not found).')
+
+  const entries = readU16(view, endOffset + 10)
+  let cursor = readU32(view, endOffset + 16)
+  let regular: ArrayBuffer | undefined
+  let italic: ArrayBuffer | undefined
+
+  for (let index = 0; index < entries; index++) {
+    if (readU32(view, cursor) !== 0x02014B50) {
+      throw new Error('The Maple Mono KR archive contains an invalid directory entry.')
+    }
+    const method = readU16(view, cursor + 10)
+    const compressedSize = readU32(view, cursor + 20)
+    const nameLength = readU16(view, cursor + 28)
+    const extraLength = readU16(view, cursor + 30)
+    const commentLength = readU16(view, cursor + 32)
+    const localOffset = readU32(view, cursor + 42)
+    const name = new TextDecoder().decode(archive.subarray(cursor + 46, cursor + 46 + nameLength))
+
+    if (/\.ttf$/i.test(name) && /KR/i.test(name) && /VF/i.test(name)) {
+      const font = await extractZipEntry(archive, view, localOffset, compressedSize, method)
+      if (/italic/i.test(name)) italic = font
+      else if (!regular) regular = font
+    }
+    cursor += 46 + nameLength + extraLength + commentLength
+  }
+
+  if (!regular) throw new Error('The official Maple Mono KR variable font was not found in the archive.')
+
+  const faces = [
+    new FontFace('MapleMonoKR', regular, { display: 'swap', style: 'normal', weight: '100 900' }),
+  ]
+  if (italic) {
+    faces.push(new FontFace('MapleMonoKR', italic, { display: 'swap', style: 'italic', weight: '100 900' }))
+  }
+  await Promise.all(faces.map(face => face.load()))
+  faces.forEach(face => document.fonts.add(face))
+}
+
+/** Load the official Maple Mono NF-KR variable package and register its fonts. */
+export function loadMapleMonoKR(): Promise<void> {
+  if (mapleKRLoad) return mapleKRLoad
 
   mapleKRLoad = (async () => {
     const response = await fetch(MAPLE_KR_ARCHIVE)
-    if (!response.ok) {
-      throw new Error(`Maple Mono KR download failed: ${response.status}`)
-    }
-
-    const archive = new Uint8Array(await response.arrayBuffer())
-    const entries = Object.entries(unzipSync(archive))
-      .filter(([name]) => /\.ttf$/i.test(name))
-
-    const regular = entries.find(([name]) =>
-      /MapleMono-NF-KR(?:\[wght\])?-VF\.ttf$/i.test(name),
-    )?.[1]
-    const italic = entries.find(([name]) =>
-      /MapleMono-NF-KR-Italic\[wght\]-VF\.ttf$/i.test(name),
-    )?.[1]
-
-    if (!regular) {
-      throw new Error('The official Maple Mono KR variable font was not found in the archive.')
-    }
-
-    const faces = [
-      new FontFace('MapleMonoKR', toArrayBuffer(regular), {
-        display: 'swap',
-        style: 'normal',
-        weight: '100 900',
-      }),
-      new FontFace('MapleMonoKR', toArrayBuffer(italic ?? regular), {
-        display: 'swap',
-        style: 'italic',
-        weight: '100 900',
-      }),
-    ]
-
-    await Promise.all(faces.map(face => face.load()))
-    faces.forEach(face => document.fonts.add(face))
+    if (!response.ok) throw new Error(`Maple Mono KR download failed: ${response.status}`)
+    await loadKRFromArchive(await response.arrayBuffer())
   })().catch((error) => {
     mapleKRLoad = undefined
     throw error
   })
-
   return mapleKRLoad
 }
 
@@ -99,20 +130,14 @@ export function getCNFromRemote(italic: boolean): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const entry = italic ? 'italic' : 'main'
     const href = `https://fontsapi.zeoseven.com/442/${entry}/result.css`
-
     const existingEl = document.querySelector(`link[href="${href}"]`) as HTMLLinkElement | null
-
-    if (existingEl) {
-      existingEl.remove()
-    }
+    if (existingEl) existingEl.remove()
 
     const el = document.createElement('link')
     el.rel = 'stylesheet'
     el.href = href
-
     el.onload = () => resolve()
     el.onerror = () => reject(new Error(`Failed to load ${href}`))
-
     document.head.append(el)
   })
 }
