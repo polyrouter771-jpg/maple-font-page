@@ -84,14 +84,15 @@ export default function TextStyler(props: TextStylerProps) {
         aria-label="Maple Mono text preview"
         aria-multiline="true"
         spellcheck={false}
-        class={`rich-preview min-h-36 flex-1 overflow-auto whitespace-pre-wrap break-words p-3 font-liga text-base leading-relaxed outline-none focus:ring-1 focus:ring-inset focus:ring-#64748b ${props.class ?? ''}`}
+        class={`rich-preview min-h-36 flex-1 overflow-auto whitespace-pre-wrap break-words p-3 font-liga text-base leading-relaxed outline-none focus:ring-1 focus:ring-inset focus:ring-#64748b ${props.krLoaded ? 'kr-font-active' : ''} ${props.class ?? ''}`}
+        lang="ko"
         style={props.style}
         onInput={() => props.onTextChange(readEditorText())}
         onKeyUp={updateActive}
         onMouseUp={updateActive}
         onBlur={updateActive}
       />
-      <style>{'.rich-preview b, .rich-preview strong { font-weight: 700 !important; font-variation-settings: "wght" 700 !important; } .rich-preview i, .rich-preview em { font-style: italic !important; }'}</style>
+      <style>{'.rich-preview.kr-font-active { font-family: "MapleMonoKR", "MapleMono", monospace !important; } .rich-preview b, .rich-preview strong { font-weight: 700 !important; font-variation-settings: "wght" 700 !important; } .rich-preview i, .rich-preview em { font-style: italic !important; }'}</style>
       <footer class="flex flex-wrap items-center justify-between gap-2 border-t border-#44444b px-3 py-1.5 text-xs text-#999999">
         <span>Bold / Italic apply to the selected range.</span>
         <span>{props.krError || (props.krLoaded ? 'Official Maple Mono KR variable font' : 'Korean font loads on demand')}</span>
