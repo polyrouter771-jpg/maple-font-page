@@ -1,61 +1,94 @@
-import { createSignal } from 'solid-js'
+import { createEffect, createSignal } from 'solid-js'
 
-export default function TextStyler() {
+interface TextStylerProps {
+  text: string
+  onTextChange: (text: string) => void
+  style: Record<string, string | number>
+  class?: string
+  krLoaded: boolean
+  krLoading: boolean
+  krError: string
+  onLoadKR: () => void
+}
+
+export default function TextStyler(props: TextStylerProps) {
   let editor: HTMLDivElement | undefined
   const [active, setActive] = createSignal({ bold: false, italic: false })
 
-  function format(command: 'bold' | 'italic') {
-    editor?.focus()
-    document.execCommand(command)
+  createEffect(() => {
+    const value = props.text
+    if (editor && editor.innerText !== value) {
+      editor.textContent = value
+    }
+  })
+
+  function updateActive() {
     setActive({
       bold: document.queryCommandState('bold'),
       italic: document.queryCommandState('italic'),
     })
   }
 
+  function format(command: 'bold' | 'italic') {
+    editor?.focus()
+    document.execCommand(command)
+    updateActive()
+    props.onTextChange(editor?.innerText ?? props.text)
+  }
+
   return (
-    <section class="mt-8 overflow-hidden rounded-xl border border-#44444b bg-#1e1e1f text-#cbd5e1">
-      <header class="flex flex-wrap items-center justify-between gap-3 border-b border-#44444b bg-#171718 px-4 py-3">
-        <div>
-          <div class="font-600">Rich Text Preview</div>
-          <div class="text-xs text-#999999">Select text, then apply Maple Mono styles</div>
+    <section class="flex min-h-0 w-full flex-col overflow-hidden rounded-lg border border-#44444b bg-#1e1e1f">
+      <header class="flex flex-wrap items-center justify-between gap-2 border-b border-#44444b bg-#171718 px-3 py-2">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-500">Text preview</span>
+          <span class="text-xs text-#999999">Select text to format</span>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             aria-label="Bold selected text"
             aria-pressed={active().bold}
+            title="Bold"
             onMouseDown={event => event.preventDefault()}
             onClick={() => format('bold')}
-            class="rounded border border-#64748b px-3 py-1.5 font-bold hover:bg-#334155"
+            class="size-8 rounded border border-#64748b text-sm font-bold hover:bg-#334155 aria-pressed:bg-#334155"
           >B</button>
           <button
             type="button"
             aria-label="Italic selected text"
             aria-pressed={active().italic}
+            title="Italic"
             onMouseDown={event => event.preventDefault()}
             onClick={() => format('italic')}
-            class="rounded border border-#64748b px-3 py-1.5 italic hover:bg-#334155"
+            class="size-8 rounded border border-#64748b text-sm italic hover:bg-#334155 aria-pressed:bg-#334155"
           >I</button>
+          <button
+            type="button"
+            disabled={props.krLoaded || props.krLoading}
+            onClick={props.onLoadKR}
+            class="rounded border border-#64748b px-2.5 py-1.5 text-xs hover:bg-#334155 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {props.krLoaded ? 'Maple Mono KR loaded' : props.krLoading ? 'Loading KR…' : 'Load Maple Mono KR'}
+          </button>
         </div>
       </header>
       <div
         ref={editor}
         contentEditable
+        role="textbox"
+        aria-label="Maple Mono text preview"
+        aria-multiline="true"
         spellcheck={false}
-        class="min-h-36 whitespace-pre-wrap p-4 font-mono text-base leading-relaxed outline-none focus:ring-1 focus:ring-inset focus:ring-#64748b"
-        style={{ 'font-family': 'MapleMono, monospace' }}
-        onKeyUp={() => setActive({ bold: document.queryCommandState('bold'), italic: document.queryCommandState('italic') })}
-        onMouseUp={() => setActive({ bold: document.queryCommandState('bold'), italic: document.queryCommandState('italic') })}
-      >
-        Maple Mono KR 미리보기
-        <br />
-        Select this sentence and try Bold or Italic.
-        <br />
-        한글과 영문을 함께 입력해 보세요.
-      </div>
-      <footer class="border-t border-#44444b px-4 py-2 text-xs text-#999999">
-        Formatting is applied to the selected range.
+        class={`min-h-36 flex-1 overflow-auto whitespace-pre-wrap break-words p-3 font-liga text-base leading-relaxed outline-none focus:ring-1 focus:ring-inset focus:ring-#64748b ${props.class ?? ''}`}
+        style={props.style}
+        onInput={() => props.onTextChange(editor?.innerText ?? '')}
+        onKeyUp={updateActive}
+        onMouseUp={updateActive}
+        onBlur={updateActive}
+      />
+      <footer class="flex flex-wrap items-center justify-between gap-2 border-t border-#44444b px-3 py-1.5 text-xs text-#999999">
+        <span>Bold / Italic apply to the selected range.</span>
+        <span>{props.krError || (props.krLoaded ? 'Official Maple Mono KR variable font' : 'Korean font loads on demand')}</span>
       </footer>
     </section>
   )

@@ -17,7 +17,8 @@
     "astro": "^5.10.1",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-solid": "^8.6.0",
-    "solid-js": "^1.9.7"
+    "solid-js": "^1.9.7",
+    "fflate": "^0.8.2"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.53",
@@ -42,4 +43,4 @@
     "unocss-preset-completion": "^0.1.1",
     "unocss-preset-inview": "^0.1.3"
   }
-}
+}\n

@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/slider'
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toStyleObject } from '@/utils/feature'
-import { getCNFromRemote, loadMapleMono } from '@/utils/loadFont'
+import { getCNFromRemote, loadMapleMono, loadMapleMonoKR } from '@/utils/loadFont'
 
 import LigaSwitch from './components/liga-switch'
 import KotlinEditor from './kotlin-editor'
@@ -81,7 +81,7 @@ export default function Playground(props: PlaygroundProps) {
 
   // -1: no load; 0: loading; 1: loaded; 2: load failed
   const [monoLoadState, setMonoLoadState] = createSignal<LoadingStatus>(STATE.INIT)
-  const [cnLoadState, setCNLoadState] = createSignal<LoadingStatus>(STATE.INIT)
+  const [cnLoadState, setCNLoadState] = createSignal<LoadingStatus>(STATE.INIT)\n  const [krLoadState, setKRLoadState] = createSignal<LoadingStatus>(STATE.INIT)\n  const [krLoadError, setKRLoadError] = createSignal('')
 
   const targetWeight = createMemo(() => {
     switch (width()) {
@@ -119,7 +119,7 @@ export default function Playground(props: PlaygroundProps) {
     setFeat(val => ({ ...val, ...{ [feat]: stat } }))
   }
 
-  const loadCN = () => {
+  const loadKR = () => {\n    if (krLoadState() === STATE.LOADING || krLoadState() === STATE.SUCCESS) return\n    setKRLoadState(STATE.LOADING)\n    setKRLoadError('')\n    loadMapleMonoKR()\n      .then(() => setKRLoadState(STATE.SUCCESS))\n      .catch((error: unknown) => {\n        setKRLoadState(STATE.FAILED)\n        setKRLoadError(error instanceof Error ? error.message : 'Could not load Maple Mono KR.')\n      })\n  }\n\n  const loadCN = () => {
     if (cnLoadState() === STATE.LOADING || cnLoadState() === STATE.SUCCESS) {
       return
     }
@@ -223,23 +223,25 @@ export default function Playground(props: PlaygroundProps) {
         </div>
         <div class="relative size-full max-h-45vh flex flex-col gap-2 px-1 sm:max-h-unset supports-[(width:1dvh)]:max-h-45dvh">
           <div class="size-full overflow-hidden">
-            <textarea
-              ref={textareaRef}
-              spellcheck="false"
-              title="Playground for Maple Mono"
+            <TextStyler
+              text={text()}
+              onTextChange={setText}
+              krLoaded={krLoadState() === STATE.SUCCESS}
+              krLoading={krLoadState() === STATE.LOADING}
+              krError={krLoadError()}
+              onLoadKR={loadKR}
               class={cls(
-                'size-full resize-none !b-0 bg-#0000 p-2 !outline-none scroll-smooth rounded-lg origin-tl',
                 cnLoadState() === STATE.SUCCESS && 'font-cn',
                 cnLoadState() !== STATE.SUCCESS && width() === 'Narrow' && 'scale-x-92 w-108%',
                 cnLoadState() !== STATE.SUCCESS && width() === 'Slim' && 'scale-x-83 w-120%',
               )}
               style={{
                 '--fw': targetWeight(),
+                '--ff': krLoadState() === STATE.SUCCESS ? 'MapleMonoKR' : 'MapleMono',
                 'font-size': `${size()}px`,
                 'font-style': italic(),
                 ...toStyleObject(feat()),
               }}
-              onChange={e => setText(e.target.value)}
             />
           </div>
           <div class="w-full flex gap-2 xs:gap-4">
