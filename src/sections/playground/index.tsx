@@ -3,7 +3,7 @@ import type { ConfigActionDialogProps } from './dialog/config'
 import type { PlaygroundTranslation } from '@/locales/playground/en'
 
 import { featureArray } from '@data/features/features'
-import { createRef, watch } from '@solid-hooks/core'
+import { watch } from '@solid-hooks/core'
 import { cls } from 'cls-variant'
 import { createMemo, createSignal, For, onMount, Show } from 'solid-js'
 
@@ -67,7 +67,6 @@ const STATE = {
 type LoadingStatus = typeof STATE[keyof typeof STATE]
 
 export default function Playground(props: PlaygroundProps) {
-  const textareaRef = createRef<HTMLTextAreaElement>()
   const [size, setSize] = createSignal(24)
   const [weight, setWeight] = createSignal(400)
   const [italic, setItalic] = createSignal('normal')
@@ -94,23 +93,19 @@ export default function Playground(props: PlaygroundProps) {
   })
 
   onMount(() => {
-    const ref = textareaRef()!
     setMonoLoadState(STATE.LOADING)
-    ref.value = 'Loading...'
+    setText('Loading...')
     if (location.search.includes('normal')) {
       setNormal(true)
     }
     loadMapleMono()
       .then(() => {
-        ref.value = props.defaultText
-        ref.focus()
         setMonoLoadState(STATE.SUCCESS)
-        return ref.value
+        return props.defaultText
       })
       .catch(() => {
-        ref.value = 'Fail to load Maple Mono.'
         setMonoLoadState(STATE.FAILED)
-        return ref.value
+        return 'Fail to load Maple Mono.'
       })
       .then(setText)
   })
@@ -131,13 +126,8 @@ export default function Playground(props: PlaygroundProps) {
 
   watch(() => cnLoadState(), (state) => {
     if (state === STATE.SUCCESS) {
-      const textarea = textareaRef()!
-      const oldText = textarea.value
-      textarea.focus()
-      textarea.value = `${oldText || ''}\n\n中文测试：“‘’” …… —— ，。`
-      textarea.selectionStart = textarea.selectionEnd = oldText.length + 7
-      textarea.scroll({ top: 99999 })
-      setText(textarea.value)
+      const oldText = text()
+      setText(`${oldText || ''}\n\n中文测试：“‘’” …… —— ，。`)
     }
   })
 

@@ -58,7 +58,7 @@ async function extractZipEntry(
   if (method === 0) return compressed.slice().buffer
   if (method !== 8) throw new Error(`Unsupported Maple Mono KR ZIP compression method: ${method}`)
 
-  const stream = new Blob([compressed]).stream().pipeThrough(
+  const stream = new Blob([compressed.slice().buffer as ArrayBuffer]).stream().pipeThrough(
     new DecompressionStream('deflate-raw'),
   )
   return new Response(stream).arrayBuffer()
