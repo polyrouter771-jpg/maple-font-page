@@ -30,3 +30,6 @@ Thumbs.db
 
 .astro
 .eslintcache
+# Generated official Maple Mono KR assets (downloaded during dev/build)
+/public/fonts/MapleMonoKR-*.ttf
+/public/fonts/maple-mono-kr.json
