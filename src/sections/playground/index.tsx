@@ -80,7 +80,9 @@ export default function Playground(props: PlaygroundProps) {
 
   // -1: no load; 0: loading; 1: loaded; 2: load failed
   const [monoLoadState, setMonoLoadState] = createSignal<LoadingStatus>(STATE.INIT)
-  const [cnLoadState, setCNLoadState] = createSignal<LoadingStatus>(STATE.INIT)\n  const [krLoadState, setKRLoadState] = createSignal<LoadingStatus>(STATE.INIT)\n  const [krLoadError, setKRLoadError] = createSignal('')
+  const [cnLoadState, setCNLoadState] = createSignal<LoadingStatus>(STATE.INIT)
+  const [krLoadState, setKRLoadState] = createSignal<LoadingStatus>(STATE.INIT)
+  const [krLoadError, setKRLoadError] = createSignal('')
 
   const targetWeight = createMemo(() => {
     switch (width()) {
@@ -114,7 +116,19 @@ export default function Playground(props: PlaygroundProps) {
     setFeat(val => ({ ...val, ...{ [feat]: stat } }))
   }
 
-  const loadKR = () => {\n    if (krLoadState() === STATE.LOADING || krLoadState() === STATE.SUCCESS) return\n    setKRLoadState(STATE.LOADING)\n    setKRLoadError('')\n    loadMapleMonoKR()\n      .then(() => setKRLoadState(STATE.SUCCESS))\n      .catch((error: unknown) => {\n        setKRLoadState(STATE.FAILED)\n        setKRLoadError(error instanceof Error ? error.message : 'Could not load Maple Mono KR.')\n      })\n  }\n\n  const loadCN = () => {
+  const loadKR = () => {
+    if (krLoadState() === STATE.LOADING || krLoadState() === STATE.SUCCESS) return
+    setKRLoadState(STATE.LOADING)
+    setKRLoadError('')
+    loadMapleMonoKR()
+      .then(() => setKRLoadState(STATE.SUCCESS))
+      .catch((error: unknown) => {
+        setKRLoadState(STATE.FAILED)
+        setKRLoadError(error instanceof Error ? error.message : 'Could not load Maple Mono KR.')
+      })
+  }
+
+  const loadCN = () => {
     if (cnLoadState() === STATE.LOADING || cnLoadState() === STATE.SUCCESS) {
       return
     }
