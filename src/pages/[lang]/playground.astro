@@ -11,7 +11,6 @@ import Layout from '@/layouts/Layout.astro'
 import { useNavTranslation, usePlaygroundTranslation } from '@/locales/i18n'
 import Nav from '@/sections/nav.astro'
 import PlaygroundArea from '@/sections/playground'
-import { isDEV } from '@/utils/constant'
 
 export { getStaticPaths } from '@/locales/i18n'
 
@@ -34,7 +33,7 @@ function parseFeature(config: Record<string, Record<string, string>>): FontFeatu
 }
 
 const locale = Astro.currentLocale
-const baseUrl = isDEV ? `/${locale}` : `${Astro.site}${locale}`
+const baseUrl = `${import.meta.env.BASE_URL}${locale}`
 const downloadLink = `${baseUrl}/download`
 
 const defaultText = [
@@ -46,7 +45,7 @@ const defaultText = [
   '<---|--|--------|-<->--<-|',
   '[INFO] todo)) fixme))',
   'Input your text here.',
-].join('\n\n')
+].join('\\n\\n')
 
 // reference from https://lilex.myrt.co/
 ---
